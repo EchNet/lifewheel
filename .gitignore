@@ -1,0 +1,14 @@
+# Node/ReactJS
+node_modules/
+coverage
+stats.json
+npm-debug.log
+
+# Parcel.
+dist/
+.cache/
+
+# Other.
+.DS_Store
+.idea
+*.swp

@@ -1,0 +1,22 @@
+{
+  "name": "lifewheel",
+  "version": "1.0.0",
+  "description": "Wheel of Life tool - server",
+  "main": "index.js",
+  "scripts": {
+    "start": "./node_modules/.bin/nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/EchNet/lifewheel.git"
+  },
+  "author": "James Echmalian",
+  "license": "MIT",
+  "devDependencies": {
+    "nodemon": "^2.0.4"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "morgan": "^1.10.0"
+  }
+}
