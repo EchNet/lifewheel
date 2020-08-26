@@ -25,23 +25,29 @@
   /**
    * The wheel renderer.
    * Params:
-   *  .fills            Array of NSECTIONS fill styles
-   *  .labels           Array of NSECTIONS rim label strings
-   *  .values           Array of NSECTIONS satisfaction values 0..10
-   *  .center           The center point on the canvas
+   *  .fill{0..7}       Array of NSECTIONS fill styles
+   *  .label{0..7}      Array of NSECTIONS rim label strings
+   *  .value{0..7}      Array of NSECTIONS satisfaction values 0..10
+   *  .centerX          X coordinate of the center point on the canvas
+   *  .centerY          Y coordinate of the center point on the canvas
    *  .radius           Distance from center point to outer edge
-   *  .tabHeight        Distance along radius from inner edge to outer
    *  .baseAngle        Angle of rotation from base heading
    */
   function renderWheel(params) {
     const cx = params.center.x;
     const cy = params.center.y;
     const radius = params.radius;
-    const innerRadius = radius - params.tabHeight - STYLES.innerRim.width;
+    const tabHeight = radius / 6;
+    const labelFontSize = Math.floor(tabHeight / 8) * 6;
+    const innerRadius = radius - tabHeight - STYLES.innerRim.width;
     const baseAngle = params.baseAngle;
 
     var context = canvas.getContext("2d")
     context.clearRect(0, 0, canvas.width, canvas.height)
+
+    if (radius < 1) {
+      return;
+    }
 
     var x = cx;
     var y = cy;
@@ -150,9 +156,9 @@
       context.save()
       context.fillStyle = "black";
       context.textAlign = "center";
-      context.font = params.labelFontSize + "px " + STYLES.label.fontFamily;
+      context.font = labelFontSize + "px " + STYLES.label.fontFamily;
       x = cx; y = cy;
-      moveCurrentPoint(innerRadius + (params.labelFontSize / 3), segToAngle(seg + 0.5));
+      moveCurrentPoint(innerRadius + (labelFontSize / 3), segToAngle(seg + 0.5));
       context.translate(x, y)
       context.rotate(segToAngle(seg + 0.5) + Math.PI/2)
       context.fillText(params.labels[seg], 0, 0)
@@ -186,7 +192,7 @@
     case PLACEMENT_NEUTRAL:
       return canvas.height * 0.45;
     case PLACEMENT_OFFSTAGE:
-      return 0;
+      return 20;
     case PLACEMENT_CENTER_STAGE:
       return canvas.height;
     case PLACEMENT_STAGE_LEFT:
@@ -199,7 +205,7 @@
    *  .fills            Array of NSECTIONS fill styles
    *  .labels           Array of NSECTIONS rim label strings
    *  .values           Array of NSECTIONS satisfaction values 0..10
-   *  .position         The at-rest position of the wheel, one of the PLACEMENT constants.
+   *  .placement        The at-rest size and position of the wheel, one of the PLACEMENT constants.
    *  .currentSection   The index 0..7 of the current section
    *  .open             True if the current section is maximized
    */
@@ -210,10 +216,8 @@
    * state on that canvas.
    */
   function appStateToRenderParams(state) {
-    const center = state.cx ? { x: state.cx, y: state.cy } : placementToCenter(0);
-    const radius = placementToRadius(0);
-    const tabHeight = radius / 6;
-    const labelFontSize = Math.floor(tabHeight / 8) * 6;
+    const center = placementToCenter(state.placement);
+    const radius = placementToRadius(state.placement);
     const baseAngle = (1 - 2*state.currentSection) * HALF_SLICE;
 
     return {
@@ -222,8 +226,6 @@
       labels: state.wheel.labels,
       center: center,
       radius: radius,
-      tabHeight: tabHeight,
-      labelFontSize: labelFontSize,
       baseAngle: baseAngle
     }
   }
@@ -266,15 +268,13 @@
   }
 
   var appState = initialAppState();
-  console.log(appState)
   draw();
 
   // TEST
   canvas.onclick = function(event) {
     var rect = canvas.getBoundingClientRect();
-    mutate("cx", (event.clientX - rect.left) * canvas.width / rect.width, true)
-    mutate("cy", (event.clientY - rect.top) * canvas.height / rect.height, true)
-    mutate("currentSection", (appState.currentSection + 2) % NSECTIONS, true)
+    mutate("placement", (appState.placement + 1) % 4, true);
+    mutate("currentSection", (appState.currentSection + 3) % NSECTIONS, true)
   }
 
   function getAppStateValue(key) {
@@ -335,9 +335,7 @@
       continueTransition();
     }
     else {
-      console.log("transitionParams before", transitionParams);
       var goalParams = appStateToRenderParams(appState);
-      console.log("goalParams before", goalParams);
       let waysToGo = false;
       transitionParams.center.x = approachGoal(transitionParams.center.x, goalParams.center.x, timestamp - lastTimestamp)
       if (transitionParams.center.x != goalParams.center.x) {
@@ -349,6 +347,10 @@
       }
       transitionParams.baseAngle = approachGoal(transitionParams.baseAngle, goalParams.baseAngle, timestamp - lastTimestamp)
       if (transitionParams.baseAngle != goalParams.baseAngle) {
+        waysToGo = true;
+      }
+      transitionParams.radius = approachGoal(transitionParams.radius, goalParams.radius, timestamp - lastTimestamp)
+      if (transitionParams.radius != goalParams.radius) {
         waysToGo = true;
       }
       console.log("transitionParams after", transitionParams);
@@ -366,7 +368,6 @@
 
   function saveWheelState() {
     localStorage.setItem("state", JSON.stringify(localWheelRenderParams))
-    console.log('saved')
   }
 
   // TODO
