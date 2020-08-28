@@ -19,16 +19,16 @@
       .canvasContainer {
         position: relative;
       }
-      .canvasContainer canvas {
-        width: 100%;
-        height: 100%;
-      }
       .canvasContainer div.overlay {
-        display: none;
         position: absolute;
         z-index: 10;
         border-radius: 15px;
         background-color: #efefef;
+        opacity: 0;
+        transition: opacity 2s ease-in;
+      }
+      .canvasContainer div.overlay.shown {
+        opacity: 1;
       }
       #rightOverlayDiv {
         min-width: 250px;
@@ -43,13 +43,13 @@
     <header>
     </header>
     <section>
-      <div class="canvasContainer">
-        <canvas id="theCanvas" width="1260" height="630"></canvas>
-        <div id="rightOverlayDiv" class="overlay"></div>
-      </div>
+      <div class="canvasContainer"></div>
     </section>
     <footer>
     </footer>
   </body>
   <script type="text/javascript" src="lifewheel.js"></script>
+  <script type="text/javascript" src="wheel.js"></script>
+  <script type="text/javascript" src="wcanvas.js"></script>
+  <script type="text/javascript" src="stage.js"></script>
 </html>

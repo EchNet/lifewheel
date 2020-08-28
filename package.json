@@ -1,7 +1,7 @@
 {
   "name": "lifewheel",
   "version": "1.0.0",
-  "description": "Wheel of Life tool - server",
+  "description": "Wheel of Life",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
@@ -12,11 +12,19 @@
   },
   "author": "James Echmalian",
   "license": "MIT",
-  "devDependencies": {
-    "nodemon": "^2.0.4"
+  "engines": {
+    "node": "12.x"
   },
   "dependencies": {
     "express": "^4.17.1",
     "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.4",
+    "babel-core": "^6.26.3",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-react": "^6.24.1",
+    "parcel-bundler": "^1.12.4"
   }
 }
