@@ -42,7 +42,6 @@ LifeWheel.define(function(options) {
   }
 
   function renderWheel(params, context) {
-    console.log(params);
     const cx = params.center.x;
     const cy = params.center.y;
     const radius = params.radius;
@@ -118,7 +117,7 @@ LifeWheel.define(function(options) {
     // Redarken the satisfied portions.
     for (var seg = 0; seg < NSECTIONS; ++seg) {
       var value = getValue(seg)
-      if (value == null || value == 0) continue;
+      if (!value) continue;
       context.fillStyle = params.fills[seg];
       context.beginPath()
       x = cx; y = cy;

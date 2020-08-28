@@ -46,6 +46,9 @@ LifeWheel.define(function(options) {
    * Animation stepper.
    */
   function approachGoalValue(currentValue, goalValue, elapsedTime) {
+    if (typeof currentValue !== "number") {
+      currentValue = 0.0;
+    }
     const diff = goalValue - currentValue;
     if (Math.abs(diff) < 0.01) {
       return goalValue;
@@ -59,11 +62,11 @@ LifeWheel.define(function(options) {
    */
   function approachGoal(currentParams, targetParams, elapsedTime) {
     var waysToGo = false;
-    for (var key in currentParams) {
+    for (var key in targetParams) {
       const currentValue = currentParams[key];
       const targetValue = targetParams[key];
       if (currentValue !== targetValue) {
-        const newValue = (typeof currentValue === "string")
+        const newValue = (typeof targetValue !== "number")
           ? targetValue
           : approachGoalValue(currentValue, targetValue, elapsedTime);
         currentParams[key] = newValue;
