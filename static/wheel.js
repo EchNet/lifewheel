@@ -37,7 +37,8 @@ LifeWheel.define(function(options) {
       stroke: "white"
     },
     label: {          // Text styles for the labels.
-      fontFamily: "Arial"
+      fontFamily: "Verdana,Arial",
+      fill: "#381468"
     }
   }
 
@@ -160,7 +161,7 @@ LifeWheel.define(function(options) {
       var label = getLabel(seg);
       if (!label) continue;
       context.save()
-      context.fillStyle = "black";
+      context.fillStyle = STYLES.label.fill;
       context.textAlign = "center";
       context.font = labelFontSize + "px " + STYLES.label.fontFamily;
       x = cx; y = cy;
@@ -176,7 +177,7 @@ LifeWheel.define(function(options) {
    *
    */
   function getAngleForTopSection(section) {
-    return (1 - 2 * section) * HALF_SLICE;
+    return (3 + 2*section) * HALF_SLICE;
   }
 
   return {

@@ -20,13 +20,11 @@
  *
  */
 LifeWheel.define(function(options) {
-
   const defaultOptions = {
     fills: [
       "#8cc", "#abf", "#ff8", "#fc8", "#faa", "#c8c", "#8f8", "#dc9"
     ]
   }
-
   options = Object.assign({}, defaultOptions, options);
 
   /**
@@ -40,12 +38,14 @@ LifeWheel.define(function(options) {
   /**
    * Animation/transition constants.
    */
-  const DECAY_PER_MILLI = 0.99985;
+  const FAST_DECAY_PER_MILLI = 0.9985;
+  const MEDIUM_DECAY_PER_MILLI = 0.99985;
+  const SLOW_DECAY_PER_MILLI = 0.999985;
 
   /**
    * Animation stepper.
    */
-  function approachGoalValue(currentValue, goalValue, elapsedTime) {
+  function approachGoalValue(currentValue, goalValue, decay) {
     if (typeof currentValue !== "number") {
       currentValue = 0.0;
     }
@@ -53,14 +53,14 @@ LifeWheel.define(function(options) {
     if (Math.abs(diff) < 0.01) {
       return goalValue;
     }
-    const newDiff = diff * Math.pow(DECAY_PER_MILLI, elapsedTime)
+    const newDiff = diff * decay;
     return goalValue - newDiff;
   }
 
   /**
    * Animation stepper.
    */
-  function approachGoal(currentParams, targetParams, elapsedTime) {
+  function approachGoal(currentParams, targetParams, decay) {
     var waysToGo = false;
     for (var key in targetParams) {
       const currentValue = currentParams[key];
@@ -68,7 +68,7 @@ LifeWheel.define(function(options) {
       if (currentValue !== targetValue) {
         const newValue = (typeof targetValue !== "number")
           ? targetValue
-          : approachGoalValue(currentValue, targetValue, elapsedTime);
+          : approachGoalValue(currentValue, targetValue, decay);
         currentParams[key] = newValue;
         if (newValue !== targetValue) {
           waysToGo = true;
@@ -129,7 +129,7 @@ LifeWheel.define(function(options) {
       case PLACEMENT_NEUTRAL:
         return { x: canvas.width / 2, y: canvas.height / 2 }
       case PLACEMENT_OFFSTAGE:
-        return { x: canvas.height / -3, y: canvas.height }
+        return { x: -40, y: canvas.height - 40 }
       case PLACEMENT_CENTER_STAGE:
         return { x: canvas.width / 2, y: canvas.height }
       case PLACEMENT_STAGE_LEFT:
@@ -192,15 +192,21 @@ LifeWheel.define(function(options) {
 
     // Transition control variables.
     var currentWheelRenderParams;
-    var targetWheelRenderParams;
     var transitionTimer;
     var lastTimestamp = null;
+    var transitionDecayPerMilli = MEDIUM_DECAY_PER_MILLI;
 
     this.setVisible = function(pVisible) {
       if (!!pVisible != visible) {
         visible = !!pVisible;
         startTransition();
       }
+    }
+
+    this.setTransitionSpeed = function(speed) {
+      if (speed == "fast") transitionDecayPerMilli = FAST_DECAY_PER_MILLI;
+      else if (speed == "slow") transitionDecayPerMilli = SLOW_DECAY_PER_MILLI;
+      else transitionDecayPerMilli = MEDIUM_DECAY_PER_MILLI;
     }
 
     this.setLabel = function(index, label) {
@@ -239,8 +245,6 @@ LifeWheel.define(function(options) {
     }
 
     function startTransition() {
-      // Update target values.
-      targetWheelRenderParams = flattenWheelRenderParams(getWheelRenderParams())
       if (!transitionTimer) {
         continueTransition();  // Kick off the animation if it's not already running.
       }
@@ -250,35 +254,40 @@ LifeWheel.define(function(options) {
       transitionTimer = window.requestAnimationFrame(stepTransition)
     }
 
+    function endTransition() {
+      transitionTimer = null;
+      lastTimestamp = null;
+    }
+
     function stepTransition(timestamp) {
       if (lastTimestamp == null) {
         lastTimestamp = timestamp;
         continueTransition();
       }
+      else if (!visible) {
+        currentWheelRenderParams = null;
+        endTransition();
+      }
       else {
         const context = canvas.getContext("2d")
         context.clearRect(0, 0, canvas.width, canvas.height)
 
-        let keepStepping = false;
-        if (visible) {
-          if (!currentWheelRenderParams) {
-            currentWheelRenderParams = flattenWheelRenderParams(getWheelRenderParams())
-          }
-          keepStepping = approachGoal(
-              currentWheelRenderParams, targetWheelRenderParams, timestamp - lastTimestamp)
-          LifeWheel.renderWheel(unflattenWheelRenderParams(currentWheelRenderParams), context);
-        }
-        else {
-          currentWheelRenderParams = null;
+        const targetWheelRenderParams = flattenWheelRenderParams(getWheelRenderParams())
+
+        if (!currentWheelRenderParams) {
+          currentWheelRenderParams = targetWheelRenderParams;
         }
 
-        if (keepStepping) {
+        const elapsedTime = timestamp - lastTimestamp;
+        const decay = Math.pow(transitionDecayPerMilli, elapsedTime);
+        if (approachGoal(currentWheelRenderParams, targetWheelRenderParams, decay)) {
           continueTransition();
         }
         else {
-          transitionTimer = null;
-          lastTimestamp = null;
+          endTransition();
         }
+
+        LifeWheel.renderWheel(unflattenWheelRenderParams(currentWheelRenderParams), context);
       }
     }
   }
