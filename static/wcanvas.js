@@ -210,6 +210,9 @@ LifeWheel.define(function(options) {
     }
 
     this.setLabel = function(index, label) {
+      while (labels.length <= index) {
+        labels.push("");
+      }
       if (labels[index] != label) {
         labels[index] = label;
         startTransition();
