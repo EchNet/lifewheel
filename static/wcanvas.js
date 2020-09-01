@@ -45,11 +45,16 @@ LifeWheel.define(function(options) {
   /**
    * Animation stepper.
    */
-  function approachGoalValue(currentValue, goalValue, decay) {
+  function approachGoalValue(currentValue, goalValue, decay, isAngle) {
     if (typeof currentValue !== "number") {
       currentValue = 0.0;
     }
-    const diff = goalValue - currentValue;
+    var diff = goalValue - currentValue;
+    while (isAngle && Math.abs(diff) > Math.PI) {
+      if (currentValue > goalValue) currentValue -= 2*Math.PI;
+      else currentValue += 2*Math.PI;
+      diff = goalValue - currentValue;
+    }
     if (Math.abs(diff) < 0.01) {
       return goalValue;
     }
@@ -68,7 +73,7 @@ LifeWheel.define(function(options) {
       if (currentValue !== targetValue) {
         const newValue = (typeof targetValue !== "number")
           ? targetValue
-          : approachGoalValue(currentValue, targetValue, decay);
+          : approachGoalValue(currentValue, targetValue, decay, key === "baseAngle");
         currentParams[key] = newValue;
         if (newValue !== targetValue) {
           waysToGo = true;

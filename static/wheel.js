@@ -177,7 +177,7 @@ LifeWheel.define(function(options) {
    *
    */
   function getAngleForTopSection(section) {
-    return (3 + 2*section) * HALF_SLICE;
+    return ((27 - 2*section) * HALF_SLICE) % (Math.PI * 2);
   }
 
   return {

@@ -115,7 +115,7 @@
     this.connect = function() {
       stage.introduceOverlayContent(createContainer("screenOverlay", [
         createMessageContainer("bigMessage",
-            "Let's start by identifying the areas of your life that are <span style='color: #882299; font-weight: bold;'>most important</span> to you."),
+            "Let's start by identifying the areas of your life <span style='color: #882299; font-weight: bold;'>most important</span> to you."),
         createContainer("buttonContainer", [
           createButton("button", "OK", advance),
         ])
@@ -253,9 +253,14 @@
       updateRemainingCount(0);
 
       stage.introduceOverlayContent(createContainer("overlay", [ ui ]));
+
+      window.setTimeout(function() {
+        textInputElement.focus()
+      }, 100)
     }
 
     function handleAdvance() {
+      stage.getWheelCanvas().setState({});  // clear state.
       for (var i in getSelectedAreas()) {
         stage.getWheelCanvas().setLabel(i, getSelectedAreas()[i]);
       }
@@ -308,19 +313,43 @@
     }
 
     function addUI() {
+      var currentSection = 0;
+      const wcanvas = stage.getWheelCanvas();
+
+      const message = createMessageContainer("normalMessage", "Rate your satisfaction level (0..10) in")
+
       const numberPicker = createElement("input", "inputText");
       numberPicker.type = "number";
       numberPicker.min = 0;
       numberPicker.max = 10;
       numberPicker.step = 1;
       numberPicker.value = 0;
-      var button = createButton("button inputText", "&#x2713", function() {
-        stage.getWheelCanvas().setValue(stage.getWheelCanvas().getState().currentSection, numberPicker.value)
-        stage.getWheelCanvas().setCurrentSection((stage.getWheelCanvas().getState().currentSection + 1) % 8)
-        stage.assignState({ wheel: stage.getWheelCanvas().getState() });
+      numberPicker.onchange = function() {
+        wcanvas.setValue(currentSection, parseInt(numberPicker.value))
+        stage.assignState({ wheel: wcanvas.getState() });
+      }
+
+      var prevButton = createButton("button inputText", "&lt;", function() {
+        updateCurrentSection((currentSection + 7) % 8);
       });
-      const ui = createContainer("div", [ numberPicker, button ])
-      stage.introduceOverlayContent(createContainer("rightHalf", [ ui ]));
+      var nextButton = createButton("button inputText", "&gt;", function() {
+        updateCurrentSection((currentSection + 1) % 8);
+      });
+      function updateCurrentSection(newCurrentSection) {
+        currentSection = newCurrentSection;
+        wcanvas.setCurrentSection(currentSection);
+        areaLabel.innerHTML = "";
+        areaLabel.appendChild(document.createTextNode(wcanvas.getState().labels[currentSection]));
+        numberPicker.value = wcanvas.getState().values[currentSection] || 0;
+      }
+
+      const areaLabel = createMessageContainer("bigMessage bold", "") 
+      const row3 = createContainer("div", [ numberPicker ])
+      const nextLabel = createElement("span", "normalMessage")
+      nextLabel.innerHTML = "&nbsp; next area &nbsp;";
+      const row4 = createContainer("div", [ prevButton, nextLabel, nextButton ])
+      stage.introduceOverlayContent(createContainer("rightHalf", [ message, areaLabel, row3, row4 ]));
+      updateCurrentSection(0);
     }
   }, {
     acceptsState: function(state) {

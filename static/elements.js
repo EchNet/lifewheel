@@ -36,9 +36,9 @@ LifeWheel.define(function(options) {
         break;
       case "deleteButton":
         styler(
-          "padding", "0 4px")(
-          "fontSize", "18px")(
-          "marginLeft", "2px")
+          "padding", "0 3px")(
+          "fontSize", "12px")(
+          "marginLeft", "5px")
         break;
       case "textInput":
         styler(
