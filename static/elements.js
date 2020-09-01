@@ -159,6 +159,20 @@ LifeWheel.define(function(options) {
       case "halfWidth":
         styler("width", "340px")("position", "relative")
         break;
+      case "rightHalf":
+        styler(
+          "position", "absolute")(
+          "top", "0px")(
+          "left", "50%")(
+          "bottom", "0px")(
+          "right", "0px")(
+          "padding", 0)(
+          "display", "flex")(
+          "flexDirection", "column")(
+          "justifyContent", "center")(
+          "alignItems", "center")(
+          "transition", "opacity 1.3s ease-in-out")
+        break;
       case "overlay":
         styler(
           "position", "absolute")(

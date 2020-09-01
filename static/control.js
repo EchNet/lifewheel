@@ -256,6 +256,10 @@
     }
 
     function handleAdvance() {
+      for (var i in getSelectedAreas()) {
+        stage.getWheelCanvas().setLabel(i, getSelectedAreas()[i]);
+      }
+      stage.assignState({ selectedAreas: null, wheel: stage.getWheelCanvas().getState() })
       stage.advance("showWheel");
     }
   }, {
@@ -264,8 +268,65 @@
     }
   }));
 
-  LifeWheel.installController("showWheel", function(stage) {
-  });
+  LifeWheel.installController("showWheel", Object.assign(function(stage) {
+    this.connect = function(animate) {
+      var step = 0;
+      var interval;
+      console.log(stage.getState())
+
+      stage.getWheelCanvas().setState(stage.getState().wheel);
+      if (animate) {
+        stage.getWheelCanvas().setTransitionSpeed("slow");
+        stage.getWheelCanvas().setPlacement(LifeWheel.WheelCanvas.PLACEMENT_OFFSTAGE);
+        interval = window.setInterval(doIntroStep, 350);
+      }
+      else {
+        for (var i = 0; i <= 10; ++i) {
+          doIntroStep();
+        }
+      }
+      stage.getWheelCanvas().setVisible(true);
+
+      function doIntroStep() {
+        switch (step) {
+        case 0:
+          stage.getWheelCanvas().setPlacement(LifeWheel.WheelCanvas.PLACEMENT_NEUTRAL);
+          break;
+        case 1:
+          stage.getWheelCanvas().setCurrentSection(7);
+          break;
+        case 6:
+          stage.getWheelCanvas().setCurrentSection(0);
+          break;
+        case 10:
+          stage.getWheelCanvas().setPlacement(LifeWheel.WheelCanvas.PLACEMENT_STAGE_LEFT);
+          window.clearInterval(interval);
+          addUI()
+        }
+        ++step;
+      }
+    }
+
+    function addUI() {
+      const numberPicker = createElement("input", "inputText");
+      numberPicker.type = "number";
+      numberPicker.min = 0;
+      numberPicker.max = 10;
+      numberPicker.step = 1;
+      numberPicker.value = 0;
+      var button = createButton("button inputText", "&#x2713", function() {
+        stage.getWheelCanvas().setValue(stage.getWheelCanvas().getState().currentSection, numberPicker.value)
+        stage.getWheelCanvas().setCurrentSection((stage.getWheelCanvas().getState().currentSection + 1) % 8)
+        stage.assignState({ wheel: stage.getWheelCanvas().getState() });
+      });
+      const ui = createContainer("div", [ numberPicker, button ])
+      stage.introduceOverlayContent(createContainer("rightHalf", [ ui ]));
+    }
+  }, {
+    acceptsState: function(state) {
+      return !!state.wheel;
+    }
+  }));
 
   LifeWheel.start();
 })();
