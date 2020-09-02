@@ -20,10 +20,15 @@ LifeWheel.define(function(options) {
       wheelCanvas = (function() {
         // Create the canvas element and the WheelCanvas object.
         var canvas = document.createElement("canvas")
-        canvas.width = 1260;
-        canvas.height = 630;
         canvas.style.width = "100%";
-        canvas.style.height = "100%";
+        if (document.documentElement.clientWidth > document.documentElement.clientHeight) {
+          canvas.width = 1260;
+          canvas.height = 630;
+        }
+        else {
+          canvas.width = 1260;
+          canvas.height = 1260;
+        }
         stageElement.appendChild(canvas);
         return new LifeWheel.WheelCanvas(canvas);
       })();

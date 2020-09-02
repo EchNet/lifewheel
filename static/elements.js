@@ -31,8 +31,19 @@ LifeWheel.define(function(options) {
           "padding", "4px 8px")(
           "fontFamily", options.fontFamily)(
           "fontSize", "20px")(
+          "background", "white")(
+          "color", "#14288f")(
+          "border", "solid 2px #14288f")(
+          "borderRadius", "14px")(
+          "outline", "none")(
           "marginLeft", "1px")(
           "marginRight", "1px")
+        element.onmouseenter = function() {
+          styler("background", "#d8d8d8")
+        }
+        element.onmouseleave = function() {
+          styler("background", "white")
+        }
         break;
       case "deleteButton":
         styler(
@@ -58,6 +69,25 @@ LifeWheel.define(function(options) {
           "borderRadius", "8px")(
           "padding", "8px")(
           "boxSizing", "border-box")
+        break;
+      case "normalText":
+        styler(
+          "fontSize", "18px")(
+          "color", "black")(
+          "fontFamily", options.fontFamily)(
+          "fontWeight", "normal")
+        break;
+      case "paragraph":
+        styler("marginBottom", "18px")
+        break;
+      case "narrow":
+        styler("width", "68%")
+        break;
+      case "narrower":
+        styler("width", "50%")
+        break;
+      case "narrowest":
+        styler("width", "28%")
         break;
       case "normalMessage":
         styler(
@@ -181,11 +211,14 @@ LifeWheel.define(function(options) {
           "bottom", "0px")(
           "right", "0px")(
           "padding", 0)(
+          "transition", "opacity 1.3s ease-in-out")
+        break;
+      case "column":
+        styler(
           "display", "flex")(
           "flexDirection", "column")(
           "justifyContent", "center")(
-          "alignItems", "center")(
-          "transition", "opacity 1.3s ease-in-out")
+          "alignItems", "center")
         break;
       case "screenOverlay":
         styler(
@@ -200,18 +233,6 @@ LifeWheel.define(function(options) {
           "flexDirection", "column")(
           "justifyContent", "center")(
           "alignItems", "center")(
-          "transition", "opacity 1.3s ease-in-out")
-        break;
-      case "arcOverlay":
-        styler(
-          "position", "absolute")(
-          "top", "100px")(
-          "left", "120px")(
-          "right", "120px")(
-          "flexDirection", "column")(
-          "justifyContent", "center")(
-          "alignItems", "center")(
-          "padding", 0)(
           "transition", "opacity 1.3s ease-in-out")
         break;
       case "centered":

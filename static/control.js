@@ -84,17 +84,34 @@
       stage.getWheelCanvas().setLabel(7, c);
     }
 
+    const DESCRIPTION = "" +
+      "The Wheel of Life exercise is a popular life assessment tool, simple yet powerful.";
+    const DESCRIPTION2 = "" +
+      "It gives you a foundation for describing your overall life experience in terms of " +
+      "your satisfaction in different areas important to you.";
+    const DESCRIPTION3 = "" +
+      "We'll step you through the construction of your wheel. " +
+      "Click the button below to get started.";
+
     function addUI() {
-      stage.introduceOverlayContent(createContainer("arcOverlay", [
-        createMessageContainer("normalMessage", "Lorem ipsum dolor sit amet,"),
-        createMessageContainer("normalMessage", "consectetur adipiscing elit. Nunc aliquet"),
-        createMessageContainer("normalMessage", "quam vel tellus dignissim, eget tempus libero"),
-        createMessageContainer("normalMessage", "porta. Nullam nec varius libero. Nunc pulvinar a"),
-        createMessageContainer("normalMessage", "lectus iaculis congue. Sed bibendum felis at consectetur."),
-        createContainer("buttonContainer", [
-          createButton("button", " Get Started! ", advance)
+      stage.introduceOverlayContent(createContainer("overlay", [
+        createContainer("column", [
+          createTopShaper(),
+          createMessageContainer("normalText paragraph centered narrowest", DESCRIPTION),
+          createMessageContainer("normalText paragraph centered narrower", DESCRIPTION2),
+          createMessageContainer("normalText paragraph centered narrow", DESCRIPTION3),
+          createContainer("buttonContainer", [
+            createButton("button", "Get Started!", advance)
+          ])
         ])
       ]));
+    }
+
+    function createTopShaper() {
+      var container = createElement("div");
+      var radius = stage.getWheelCanvas().getMetrics().radius;
+      container.style.height = Math.floor(radius / 4) + "px";
+      return container;
     }
 
     function advance() {
@@ -142,6 +159,9 @@
     ]
 
     function getSelectedAreas() {
+      if (!stage.getState().selectedAreas) {  // in case of goto
+        stage.assignState({ selectedAreas: [] })
+      }
       return stage.getState().selectedAreas;
     }
 
@@ -260,11 +280,12 @@
     }
 
     function handleAdvance() {
+      stage.assignState({ wheel: null })
       stage.getWheelCanvas().setState({});  // clear state.
       for (var i in getSelectedAreas()) {
         stage.getWheelCanvas().setLabel(i, getSelectedAreas()[i]);
       }
-      stage.assignState({ selectedAreas: null, wheel: stage.getWheelCanvas().getState() })
+      stage.assignState({ wheel: stage.getWheelCanvas().getState() })
       stage.advance("showWheel");
     }
   }, {
@@ -286,7 +307,7 @@
         interval = window.setInterval(doIntroStep, 350);
       }
       else {
-        for (var i = 0; i <= 10; ++i) {
+        for (var i = 0; i <= 8; ++i) {
           doIntroStep();
         }
       }
@@ -298,13 +319,13 @@
           stage.getWheelCanvas().setPlacement(LifeWheel.WheelCanvas.PLACEMENT_NEUTRAL);
           break;
         case 1:
-          stage.getWheelCanvas().setCurrentSection(7);
+          stage.getWheelCanvas().setCurrentSection(4);
           break;
         case 6:
           stage.getWheelCanvas().setCurrentSection(0);
-          break;
-        case 10:
           stage.getWheelCanvas().setPlacement(LifeWheel.WheelCanvas.PLACEMENT_STAGE_LEFT);
+          break;
+        case 8:
           window.clearInterval(interval);
           addUI()
         }
@@ -316,7 +337,25 @@
       var currentSection = 0;
       const wcanvas = stage.getWheelCanvas();
 
-      const message = createMessageContainer("normalMessage", "Rate your satisfaction level (0..10) in")
+      function updateCompletedness() {
+        var state = wcanvas.getState();
+        var count = 0;
+        for (var i = 0; i < state.values.length; ++i) {
+          if (state.values[i] != null) ++count;
+        }
+        if (count == LifeWheel.NSECTIONS) {
+          advanceButtonContainer.style.display = "block";
+        }
+      }
+
+      function updateCurrentSection(newCurrentSection) {
+        wcanvas.setTransitionSpeed("medium");
+        currentSection = newCurrentSection;
+        wcanvas.setCurrentSection(currentSection);
+        areaLabel.innerHTML = "";
+        areaLabel.appendChild(document.createTextNode(wcanvas.getState().labels[currentSection]));
+        numberPicker.value = wcanvas.getState().values[currentSection] || 0;
+      }
 
       const numberPicker = createElement("input", "inputText");
       numberPicker.type = "number";
@@ -325,35 +364,64 @@
       numberPicker.step = 1;
       numberPicker.value = 0;
       numberPicker.onchange = function() {
+        wcanvas.setTransitionSpeed("medium");
         wcanvas.setValue(currentSection, parseInt(numberPicker.value))
         stage.assignState({ wheel: wcanvas.getState() });
+        updateCompletedness();
+        if (allRated()) {
+        }
       }
 
-      var prevButton = createButton("button inputText", "&lt;", function() {
+      var rotateLeftButton = createButton("button", "&#x27f2;", function() {
         updateCurrentSection((currentSection + 7) % 8);
       });
-      var nextButton = createButton("button inputText", "&gt;", function() {
+      var rotateRightButton = createButton("button", "&#x27f3;", function() {
         updateCurrentSection((currentSection + 1) % 8);
       });
-      function updateCurrentSection(newCurrentSection) {
-        currentSection = newCurrentSection;
-        wcanvas.setCurrentSection(currentSection);
-        areaLabel.innerHTML = "";
-        areaLabel.appendChild(document.createTextNode(wcanvas.getState().labels[currentSection]));
-        numberPicker.value = wcanvas.getState().values[currentSection] || 0;
-      }
 
       const areaLabel = createMessageContainer("bigMessage bold", "") 
-      const row3 = createContainer("div", [ numberPicker ])
-      const nextLabel = createElement("span", "normalMessage")
-      nextLabel.innerHTML = "&nbsp; next area &nbsp;";
-      const row4 = createContainer("div", [ prevButton, nextLabel, nextButton ])
-      stage.introduceOverlayContent(createContainer("rightHalf", [ message, areaLabel, row3, row4 ]));
+
+      const nextLabel = createElement("span", "normalText")
+      nextLabel.innerHTML = "&nbsp; rotate &nbsp;";
+
+      const advanceButtonContainer = createContainer("buttonContainer", [
+        createButton("button", "Next >", advance)
+      ]);
+      advanceButtonContainer.style.display = "none";
+
       updateCurrentSection(0);
+      updateCompletedness();
+
+      stage.introduceOverlayContent(createContainer("rightHalf", [
+        createMessageContainer("titleBar", "How satisfied are you?"),
+        createMessageContainer("normalText", "Rate your satisfaction level (0..10) in"),
+        areaLabel,
+        createContainer("div", [ numberPicker ]),
+        createContainer("div", [ rotateLeftButton, nextLabel, rotateRightButton ]),
+        advanceButtonContainer
+      ]));
+    }
+
+    function advance() {
+      stage.advance("freeform");
     }
   }, {
     acceptsState: function(state) {
       return !!state.wheel;
+    }
+  }));
+
+  LifeWheel.installController("freeform", Object.assign(function(stage) {
+
+    this.connect = function() {
+      stage.introduceOverlayContent(createContainer("screenOverlay", [
+        createMessageContainer("bigMessage", "That's all for this demo!"),
+        createMessageContainer("paragraph centered normalText", "Future versions will allow user to enter descriptions of each area, propose action items, contact a coach, get a printable PDF of their wheel.")
+      ]))
+    }
+  }, {
+    acceptsState: function(state) {
+      return false;
     }
   }));
 

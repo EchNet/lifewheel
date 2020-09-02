@@ -116,16 +116,22 @@ LifeWheel.define(function(options) {
       open = state.open;
     }
 
+    this.getMetrics = function() {
+      return {
+        center: placementToCenter(),
+        radius: placementToRadius()
+      }
+    }
+
     function placementToRadius() {
       switch (placement) {
       case PLACEMENT_NEUTRAL:
-        return canvas.height * 0.45;
+      case PLACEMENT_STAGE_LEFT:
+        return Math.min(canvas.width * 0.25 - 2, canvas.height * 0.48);
       case PLACEMENT_OFFSTAGE:
         return 20;
       case PLACEMENT_CENTER_STAGE:
-        return canvas.height;
-      case PLACEMENT_STAGE_LEFT:
-        return canvas.height * 0.45;
+        return Math.min(canvas.width, canvas.height) / 2;
       }
     }
 
@@ -136,7 +142,7 @@ LifeWheel.define(function(options) {
       case PLACEMENT_OFFSTAGE:
         return { x: -40, y: canvas.height - 40 }
       case PLACEMENT_CENTER_STAGE:
-        return { x: canvas.width / 2, y: canvas.height }
+        return { x: canvas.width / 2, y: Math.min(canvas.width, canvas.height) / 2 }
       case PLACEMENT_STAGE_LEFT:
         return { x: canvas.width / 4, y: canvas.height / 2 }
       }
