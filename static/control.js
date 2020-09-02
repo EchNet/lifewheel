@@ -368,8 +368,6 @@
         wcanvas.setValue(currentSection, parseInt(numberPicker.value))
         stage.assignState({ wheel: wcanvas.getState() });
         updateCompletedness();
-        if (allRated()) {
-        }
       }
 
       var rotateLeftButton = createButton("button", "&#x27f2;", function() {
