@@ -6,7 +6,8 @@ const INDEX = '/index.html';
 
 const server = express()
   .use(morgan("tiny"))           // Minimal logging of web requests.
-  .use(express.static("static"))   // Serve generated Javascripts.
+  .use(express.static("static"))   // Serve static content.
+  .use(express.static("dist"))   // Serve generated Javascripts.
   .get("/", (req, res) => {
     res.redirect("index.html")
   })
