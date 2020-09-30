@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>LifeWheel - PROTOTYPE</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Quicksand:400,500,600,700">
+    <!-- Site styles -->
+    <style>
+      html, body, header, footer, section, div {
+        padding: 0;
+        margin: 0;
+      }
+      div.container {
+        margin: auto;
+        width: 780px;
+        max-width: 100%;
+      }
+      header, nav, footer {
+        text-align: center;
+      }
+      header, footer, section {
+        margin: 25px;
+      }
+      header {
+        font-size: 32px;
+        font-weight: bold;
+      }
+      nav {
+        display: flex;
+        justify-content: space-around;
+      }
+      nav a {
+        color: #f358ea;
+      }
+      body {
+        font-family: Arial, sans-serif;
+      }
+      footer {
+        font-size: 14px;
+        font-weight: normal;
+      }
+      div.not-an-image {
+        background: #406cd8;
+        text-align: center;
+        padding: 60px 20px;
+        color: white;
+      }
+    </style>
+
+    <!-- The Life Wheel element may be styled here too. -->
+    <style>
+      #lifewheel-stage {
+        font-family: 'Quicksand', Arial, sans-serif;
+        text-align: center;
+      }
+      #lifewheel-stage .lw-launch {
+        background: #a6dcf3;
+        font-size: 18px;
+        padding: 20px 0;
+        opacity: 1;
+        transition: opacity 1.3s ease-in-out;
+        cursor: pointer;
+      }
+      #lifewheel-stage .lw-launch .lw-headline-container {
+        font-size: 32px;
+        font-weight: bold;
+      }
+      #lifewheel-stage .lw-launch > div {
+        margin: 12px;
+      }
+      #lifewheel-stage .lw-launch a {
+        font-size: 18px;
+        font-weight: 600;
+        text-decoration: underline;
+        color: #c48c60;
+        cursor: pointer;
+      }
+      #lifewheel-stage .lw-launch b {
+        color: #b818b0;
+      }
+      #lifewheel-stage .lw-ActiveView {
+        background: blue;
+        transition-property: height, opacity;
+        transition-duration: 1.3s;
+        transition-timing-function: ease-in-out;
+      }
+    </style>
+    <div class="container">
+      <header>
+        <div class="not-an-image">Your company's banner logo here.</div>
+      </header>
+      <nav><div><a href="#">Home</a></div><div><a href="#">Somewhere else</a></div><div><a href="#">About Nothing</a></div></nav>
+      <section>
+        The Wheel of Life widget may be embedded into any web page.  
+        This page illustrates one of many possible presentations.
+      </section>
+      <section>
+        The widget appears below, between content sections.
+        It is initially in a dormant state, activated when clicked.
+      </section>
+      <section>
+        <!-- The site admin must provide a lifewheel-stage element to contain the element. -->
+        <div id="lifewheel-stage"></div>
+      </section>
+      <section>
+        The widget may be styled to suit the design of the page.
+        The text that appears inside the widget may be customized as well.
+      </section>
+      <footer>
+        <hr/>
+        Here is your site's footer with copyright, privacy policy, etc.
+      </footer>
+    </div>
+  </body>
+  <!-- The site admin must insert this script tag. -->
+  <script type="text/javascript" async src="./launch.js"></script>
+</html>
