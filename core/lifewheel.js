@@ -1,5 +1,5 @@
 /**
- * Maintain state of a lifewheel and render it.
+ * Render a lifewheel.
  * 
  * Built-in rendering supports HtmlCanvasContext2D and may be adapted to render to PDF or
  * other graphics-capable surface.
@@ -125,6 +125,85 @@ LifewheelStyles.defaultValues = {
   ]
 }
 
+function HtmlCanvas2DSurface(context) {
+
+  // Maintain a current point.
+  var refx = 0;
+  var refy = 0;
+
+  function moveTo(x, y) {
+    refx = x;
+    refy = y;
+    context.moveTo(refx, refy)
+  }
+
+  function moveBy(distance, angle) {
+    moveTo(refx + distance * Math.cos(angle), refy + distance * Math.sin(angle));
+  }
+
+  function lineTo(x, y) {
+    refx = x;
+    refy = y;
+    context.lineTo(refx, refy)
+  }
+
+  function lineBy(distance, angle) {
+    lineTo(refx + distance * Math.cos(angle), refy + distance * Math.sin(angle));
+  }
+
+  function arc(cx, cy, radius, angle1, angle2) {
+    refx = cx + radius * Math.cos(angle2);
+    refy = cy + radius * Math.sin(angle2);
+    context.arc(cx, cy, radius, angle1, angle2)
+  }
+
+  function openFilledShape(fill) {
+    context.fillStyle = fill;
+    context.beginPath()
+  }
+
+  function closeFilledShape() {
+    context.closePath()
+    context.fill()
+  }
+
+  function openStroke(width, color) {
+    context.beginPath()
+    context.lineWidth = width;
+    context.strokeStyle = color;
+  }
+
+  function closeStroke() {
+    context.stroke()
+  }
+
+  function drawArcedText(text, color, size, family, cx, cy, radius, angle) {
+    context.save()
+    context.fillStyle = color;
+    context.textAlign = "center";
+    context.font = size + "px " + family;
+    var x = cx + radius * Math.cos(angle)
+    var y = cy + radius * Math.sin(angle)
+    context.translate(x, y)
+    context.rotate(angle + Math.PI/2)
+    context.fillText(text, 0, 0)
+    context.restore()
+  }
+
+  Object.assign(this, {
+    moveTo: moveTo,
+    moveBy: moveBy,
+    lineTo: lineTo,
+    lineBy: lineBy,
+    arc: arc,
+    openFilledShape: openFilledShape,
+    closeFilledShape: closeFilledShape,
+    openStroke: openStroke,
+    closeStroke: closeStroke,
+    drawArcedText: drawArcedText
+  })
+}
+
 /*
  */
 function Lifewheel(stylesValues, geometryValues, modelValues) {
@@ -132,7 +211,8 @@ function Lifewheel(stylesValues, geometryValues, modelValues) {
   this.geometry = new LifewheelGeometry(geometryValues)
   this.model = new LifewheelModel(modelValues)
 }
-Lifewheel.prototype.render = function(context) {
+Lifewheel.prototype.render = function(canvas) {
+  const surface = new HtmlCanvas2DSurface(canvas)
   const cx = this.geometry.centerX;
   const cy = this.geometry.centerY;
   const radius = this.geometry.radius;
@@ -141,105 +221,71 @@ Lifewheel.prototype.render = function(context) {
   const innerRadius = radius - tabHeight - this.styles.rimDividerWidth;
   const rotation = this.geometry.rotation;
 
-  if (radius < 1) {
-    return;
-  }
-
-  // Maintain a current point.
-  var x = cx;
-  var y = cy;
-
-  function moveCurrentPoint(distance, angle) {
-    x += distance * Math.cos(angle);
-    y += distance * Math.sin(angle);
-  }
-
   function sliceToAngle(index) {
     return SLICE_ANGLE * index - rotation;
   }
 
   // Color in pie slices.
   for (var s = 0; s < NSLICES; ++s) {
-    context.fillStyle = this.styles.slices[s].fill;
-    context.beginPath()
-    x = cx; y = cy;
-    context.moveTo(x, y);
-    moveCurrentPoint(radius, sliceToAngle(s));
-    context.lineTo(x, y);
-    context.arc(cx, cy, radius, sliceToAngle(s), sliceToAngle(s + 1))
-    context.closePath();
-    context.fill()
+    surface.openFilledShape(this.styles.slices[s].fill)
+    surface.moveTo(cx, cy)
+    surface.lineBy(radius, sliceToAngle(s))
+    surface.arc(cx, cy, radius, sliceToAngle(s), sliceToAngle(s + 1))
+    surface.closeFilledShape()
   }
 
   // Lighten the unsatisfied portions.
   for (var s = 0; s < NSLICES; ++s) {
     var value = this.model.getValue(s)
-    context.fillStyle = value == null ? "#ddd" : this.styles.slices[s].negativeFill;
-    context.beginPath()
-    x = cx; y = cy;
-    context.moveTo(x, y);
-    moveCurrentPoint(innerRadius, sliceToAngle(s));
-    context.lineTo(x, y);
-    context.arc(cx, cy, innerRadius, sliceToAngle(s), sliceToAngle(s + 1))
-    context.closePath();
-    context.fill()
+    surface.openFilledShape(value == null ? "#ddd" : this.styles.slices[s].negativeFill)
+    surface.moveTo(cx, cy)
+    surface.lineBy(innerRadius, sliceToAngle(s))
+    surface.arc(cx, cy, innerRadius, sliceToAngle(s), sliceToAngle(s + 1))
+    surface.closeFilledShape()
   }
 
   // Redarken the satisfied portions.
   for (var s = 0; s < NSLICES; ++s) {
     var value = this.model.getValue(s)
     if (!value) continue;
-    context.fillStyle = this.styles.slices[s].fill;
-    context.beginPath()
-    x = cx; y = cy;
-    context.moveTo(x, y);
-    moveCurrentPoint(innerRadius * value / 10, sliceToAngle(s));
-    context.lineTo(x, y);
-    context.arc(cx, cy, innerRadius * value / 10, sliceToAngle(s), sliceToAngle(s + 1))
-    context.closePath();
-    context.fill()
+    surface.openFilledShape(this.styles.slices[s].fill);
+    surface.moveTo(cx, cy);
+    surface.lineBy(innerRadius * value / 10, sliceToAngle(s));
+    surface.arc(cx, cy, innerRadius * value / 10, sliceToAngle(s), sliceToAngle(s + 1))
+    surface.closeFilledShape()
   }
 
   // Draw the spokes.
-  context.beginPath()
-  context.lineWidth = this.styles.radialDividerWidth;
-  context.strokeStyle = this.styles.radialDividerColor;
+  surface.openStroke(this.styles.radialDividerWidth, this.styles.radialDividerColor)
   for (var s = 0; s < NSLICES; ++s) {
-    x = cx; y = cy;
-    context.moveTo(x, y);
-    moveCurrentPoint(radius, sliceToAngle(s));
-    context.lineTo(x, y);
+    surface.moveTo(cx, cy)
+    surface.lineBy(radius, sliceToAngle(s))
   }
-  context.stroke()
+  surface.closeStroke()
 
-  // Draw the inner ring.
-  context.lineWidth = this.styles.rimDividerWidth;
-  context.strokeStyle = this.styles.rimDividerColor;
-  context.beginPath()
-  context.arc(cx, cy, innerRadius, sliceToAngle(0), sliceToAngle(NSLICES))
-  context.stroke()
+  // Draw the rim divider.
+  surface.openStroke(this.styles.rimDividerWidth, this.styles.rimDividerColor)
+  surface.arc(cx, cy, innerRadius, sliceToAngle(0), sliceToAngle(NSLICES))
+  surface.closeStroke()
 
-  // Draw the outer ring.
-  context.beginPath()
-  context.lineWidth = this.styles.outlineWidth;
-  context.strokeStyle = this.styles.outlineColor;
-  context.arc(cx, cy, radius, sliceToAngle(0), sliceToAngle(NSLICES))
-  context.stroke()
+  // Draw the outline.
+  surface.openStroke(this.styles.outlineWidth, this.styles.outlineColor)
+  surface.arc(cx, cy, radius, sliceToAngle(0), sliceToAngle(NSLICES))
+  surface.closeStroke()
 
   // Draw the labels.
   for (var s = 0; s < NSLICES; ++s) {
     var label = this.model.getLabel(s);
-    if (!label) continue;
-    context.save()
-    context.fillStyle = this.styles.slices[s].labelTextColor;
-    context.textAlign = "center";
-    context.font = labelFontSize + "px " + this.styles.fontFamily;
-    x = cx; y = cy;
-    moveCurrentPoint(innerRadius + (labelFontSize / 3), sliceToAngle(s + 0.5));
-    context.translate(x, y)
-    context.rotate(sliceToAngle(s + 0.5) + Math.PI/2)
-    context.fillText(this.model.getLabel(s), 0, 0)
-    context.restore()
+    if (label) {
+      surface.drawArcedText(
+          label,
+          this.styles.slices[s].labelTextColor,
+          labelFontSize,
+          this.styles.fontFamily,
+          cx, cy,
+          innerRadius + (labelFontSize / 3),
+          sliceToAngle(s + 0.5))
+    }
   }
 }
 
