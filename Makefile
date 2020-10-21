@@ -1,13 +1,13 @@
-apps: build/app1.js
+apps: build/app1.js build/app2pdf.js
 
-run:
-	./node_modules/.bin/nodemon ./devserver.js 
-
-build/app1.js: apps/app1.js core/lifewheel.js
+build/app1.js: apps/app1.js core/*.js
 	./node_modules/.bin/browserify --debug apps/app1.js -o build/app1.js
 
-parcel:
-	./node_modules/.bin/parcel build client/launch.js
+build/app2pdf.js: apps/app2pdf.js core/*.js
+	./node_modules/.bin/browserify --debug apps/app2pdf.js -o build/app2pdf.js
 
-clean:
-	rm -rf dist .cache build
+watch2: build/app2pdf.js
+	./node_modules/.bin/watchify --debug apps/app2pdf.js -o build/app2pdf.js
+
+run:
+	node ./devserver.js 

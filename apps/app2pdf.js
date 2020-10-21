@@ -1,17 +1,28 @@
 const Lifewheel = require("../core/lifewheel")
-const HtmlCanvasSurface = require("../core/htmlcanvassurface")
+const PdfSurface = require("../core/pdfsurface")
+const PDFDocument = require("pdfkit")
+const BlobStream = require("blob-stream")
 
 function init() {
   var canvasElement = document.getElementById("theCanvas")
   var wheel = new Lifewheel()
-  wheel.geometry.radius = Math.min(canvasElement.width, canvasElement.height) * 0.4;
-  wheel.geometry.centerX = canvasElement.width / 2;
-  wheel.geometry.centerY = canvasElement.height / 2;
+  wheel.geometry.radius = 150;
+  wheel.geometry.centerX = 320;
+  wheel.geometry.centerY = 320;
   wheel.model.slices[0].label = "ABC";
   wheel.model.slices[1].label = "123";
   wheel.model.slices[0].value = 5;
   wheel.model.slices[1].value = 9;
-  wheel.render(new HtmlCanvasSurface(canvasElement))
+
+  const pdfdoc = new PDFDocument()
+  const stream = pdfdoc.pipe(BlobStream())
+  wheel.render(new PdfSurface(pdfdoc))
+  pdfdoc.end()
+  stream.on("finish", function() {
+    const url = stream.toBlobURL("application/pdf")
+    var iframe = document.getElementById("theIframe")
+    iframe.src = url;
+  })
 }
 
 // Wait for page to load.
@@ -36,3 +47,4 @@ function whenPageLoaded(callback) {
 
 // Main.
 whenPageLoaded(init)
+
